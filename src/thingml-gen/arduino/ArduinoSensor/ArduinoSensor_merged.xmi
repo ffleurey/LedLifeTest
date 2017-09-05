@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="ASCII"?>
+<thingML:ThingMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:thingML="http://www.thingml.org/xtext/ThingML">
+  <types xsi:type="thingML:Thing" name="ArduinoSensor" includes="//@types.1 //@types.2">
+    <ports xsi:type="thingML:ProvidedPort" name="gateway" sends="//@types.1/@messages.1" receives="//@types.1/@messages.0"/>
+    <ports xsi:type="thingML:RequiredPort" name="clock" sends="//@types.2/@messages.0 //@types.2/@messages.1" receives="//@types.2/@messages.2"/>
+    <properties name="R">
+      <typeRef type="//@types.9" isArray="true">
+        <cardinality xsi:type="thingML:IntegerLiteral" intValue="6"/>
+      </typeRef>
+    </properties>
+    <functions name="initialize">
+      <body xsi:type="thingML:ActionBlock">
+        <actions xsi:type="thingML:ExternStatement" statement="pinMode(2, OUTPUT);&#xA;  &#x9;&#x9; pinMode(3, OUTPUT);&#xA;  &#x9;&#x9; pinMode(4, OUTPUT);"/>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.0">
+          <index xsi:type="thingML:IntegerLiteral"/>
+          <expression xsi:type="thingML:IntegerLiteral" intValue="270"/>
+        </actions>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.0">
+          <index xsi:type="thingML:IntegerLiteral" intValue="1"/>
+          <expression xsi:type="thingML:IntegerLiteral" intValue="270"/>
+        </actions>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.0">
+          <index xsi:type="thingML:IntegerLiteral" intValue="2"/>
+          <expression xsi:type="thingML:IntegerLiteral" intValue="91"/>
+        </actions>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.0">
+          <index xsi:type="thingML:IntegerLiteral" intValue="3"/>
+          <expression xsi:type="thingML:IntegerLiteral" intValue="91"/>
+        </actions>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.0">
+          <index xsi:type="thingML:IntegerLiteral" intValue="4"/>
+          <expression xsi:type="thingML:IntegerLiteral" intValue="56"/>
+        </actions>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@properties.0">
+          <index xsi:type="thingML:IntegerLiteral" intValue="5"/>
+          <expression xsi:type="thingML:IntegerLiteral" intValue="56"/>
+        </actions>
+      </body>
+    </functions>
+    <functions name="sampleChannel">
+      <parameters name="id">
+        <typeRef type="//@types.6"/>
+      </parameters>
+      <body xsi:type="thingML:ActionBlock">
+        <actions xsi:type="thingML:ExternStatement" statement="digitalWrite(2, (">
+          <segments xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@parameters.0"/>
+          <segments xsi:type="thingML:ExternExpression" expression=" &amp; 0x01));&#xA;&#x9;&#x9; digitalWrite(3, (">
+            <segments xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@parameters.0"/>
+            <segments xsi:type="thingML:ExternExpression" expression=" &amp; 0x02));&#xA;&#x9;&#x9; digitalWrite(4, (">
+              <segments xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@parameters.0"/>
+              <segments xsi:type="thingML:ExternExpression" expression=" &amp; 0x04));&#xA;&#x9;&#x9; delay(2);"/>
+            </segments>
+          </segments>
+        </actions>
+        <actions xsi:type="thingML:LocalVariable" name="voltage">
+          <typeRef type="//@types.12"/>
+          <init xsi:type="thingML:ExternExpression" expression="analogRead(0)"/>
+        </actions>
+        <actions xsi:type="thingML:LocalVariable" name="light">
+          <typeRef type="//@types.9"/>
+          <init xsi:type="thingML:ExternExpression" expression="analogRead(1)"/>
+        </actions>
+        <actions xsi:type="thingML:VariableAssignment" property="//@types.0/@functions.1/@body/@actions.1">
+          <expression xsi:type="thingML:DivExpression">
+            <lhs xsi:type="thingML:ExpressionGroup">
+              <term xsi:type="thingML:TimesExpression">
+                <lhs xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@body/@actions.1"/>
+                <rhs xsi:type="thingML:IntegerLiteral" intValue="5000"/>
+              </term>
+            </lhs>
+            <rhs xsi:type="thingML:IntegerLiteral" intValue="1024"/>
+          </expression>
+        </actions>
+        <actions xsi:type="thingML:LocalVariable" name="current">
+          <typeRef type="//@types.12"/>
+          <init xsi:type="thingML:DivExpression">
+            <lhs xsi:type="thingML:ExpressionGroup">
+              <term xsi:type="thingML:TimesExpression">
+                <lhs xsi:type="thingML:ExpressionGroup">
+                  <term xsi:type="thingML:MinusExpression">
+                    <lhs xsi:type="thingML:IntegerLiteral" intValue="5000"/>
+                    <rhs xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@body/@actions.1"/>
+                  </term>
+                </lhs>
+                <rhs xsi:type="thingML:IntegerLiteral" intValue="10"/>
+              </term>
+            </lhs>
+            <rhs xsi:type="thingML:ArrayIndex">
+              <array xsi:type="thingML:PropertyReference" property="//@types.0/@properties.0"/>
+              <index xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@parameters.0"/>
+            </rhs>
+          </init>
+        </actions>
+        <actions xsi:type="thingML:SendAction" port="//@types.0/@ports.0" message="//@types.1/@messages.1">
+          <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@parameters.0"/>
+          <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@body/@actions.4"/>
+          <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@body/@actions.1"/>
+          <parameters xsi:type="thingML:PropertyReference" property="//@types.0/@functions.1/@body/@actions.2"/>
+        </actions>
+      </body>
+    </functions>
+    <behaviour name="Main" initial="//@types.0/@behaviour.0/@substate.0">
+      <entry xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.0"/>
+      <substate name="READY">
+        <internal>
+          <event xsi:type="thingML:ReceiveMessage" name="m" port="//@types.0/@ports.0" message="//@types.1/@messages.0"/>
+          <action xsi:type="thingML:FunctionCallStatement" function="//@types.0/@functions.1">
+            <parameters xsi:type="thingML:EventReference" receiveMsg="//@types.0/@behaviour.0/@substate.0/@internal.0/@event.0" parameter="//@types.1/@messages.0/@parameters.0"/>
+          </action>
+        </internal>
+      </substate>
+    </behaviour>
+  </types>
+  <types xsi:type="thingML:Thing" name="LoggerMsgs">
+    <messages name="requestMeasurement">
+      <annotations name="code" value="10"/>
+      <parameters name="id">
+        <typeRef type="//@types.6"/>
+      </parameters>
+    </messages>
+    <messages name="observation">
+      <annotations name="code" value="20"/>
+      <parameters name="id">
+        <typeRef type="//@types.6"/>
+      </parameters>
+      <parameters name="current">
+        <typeRef type="//@types.9"/>
+      </parameters>
+      <parameters name="voltage">
+        <typeRef type="//@types.9"/>
+      </parameters>
+      <parameters name="brightness">
+        <typeRef type="//@types.9"/>
+      </parameters>
+    </messages>
+  </types>
+  <types xsi:type="thingML:Thing" name="TimerMsgs" fragment="true">
+    <messages name="timer_start">
+      <annotations name="timer_start" value="true"/>
+      <parameters name="id">
+        <typeRef type="//@types.6"/>
+      </parameters>
+      <parameters name="time">
+        <typeRef type="//@types.10"/>
+      </parameters>
+    </messages>
+    <messages name="timer_cancel">
+      <annotations name="timer_cancel" value="true"/>
+      <parameters name="id">
+        <typeRef type="//@types.6"/>
+      </parameters>
+    </messages>
+    <messages name="timer_timeout">
+      <annotations name="timeout" value="true"/>
+      <parameters name="id">
+        <typeRef type="//@types.6"/>
+      </parameters>
+    </messages>
+    <messages name="io_clock">
+      <annotations name="xms_tic" value="10"/>
+    </messages>
+    <messages name="fps_clock">
+      <annotations name="xms_tic" value="33"/>
+    </messages>
+    <messages name="ui_clock">
+      <annotations name="xms_tic" value="231"/>
+    </messages>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Char" ByteSize="1">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="char"/>
+    <annotations name="c_byte_size" value="1"/>
+  </types>
+  <types xsi:type="thingML:ObjectType" name="String">
+    <annotations name="type_checker" value="String"/>
+    <annotations name="c_type" value="char *"/>
+    <annotations name="c_byte_size" value="2"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Boolean" ByteSize="1">
+    <annotations name="type_checker" value="Boolean"/>
+    <annotations name="c_type" value="uint8_t"/>
+    <annotations name="c_byte_size" value="1"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="UInt8" ByteSize="1">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="uint8_t"/>
+    <annotations name="c_byte_size" value="1"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="UInt16" ByteSize="2">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="uint16_t"/>
+    <annotations name="c_byte_size" value="2"/>
+    <annotations name="java_type" value="int"/>
+    <annotations name="java_primitive" value="true"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Int8" ByteSize="1">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="int8_t"/>
+    <annotations name="c_byte_size" value="1"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Int16" ByteSize="2">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="int16_t"/>
+    <annotations name="c_byte_size" value="2"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="UInt32" ByteSize="4">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="uint32_t"/>
+    <annotations name="c_byte_size" value="4"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Integer" ByteSize="2">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="int16_t"/>
+    <annotations name="c_byte_size" value="2"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Long" ByteSize="4">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="long"/>
+    <annotations name="c_byte_size" value="4"/>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Float" ByteSize="4">
+    <annotations name="type_checker" value="Real"/>
+    <annotations name="c_type" value="float"/>
+    <annotations name="c_byte_size" value="4"/>
+  </types>
+  <types xsi:type="thingML:Enumeration" name="DigitalState">
+    <annotations name="c_byte_size" value="1"/>
+    <annotations name="c_type" value="uint8_t"/>
+    <literals name="LOW">
+      <annotations name="enum_val" value="0"/>
+    </literals>
+    <literals name="HIGH">
+      <annotations name="enum_val" value="1"/>
+    </literals>
+  </types>
+  <types xsi:type="thingML:PrimitiveType" name="Byte" ByteSize="1">
+    <annotations name="type_checker" value="Integer"/>
+    <annotations name="c_type" value="uint8_t"/>
+    <annotations name="c_byte_size" value="1"/>
+    <annotations name="java_type" value="byte"/>
+    <annotations name="java_primitive" value="true"/>
+    <annotations name="scala_type" value="Byte"/>
+    <annotations name="SenML_type" value="Double"/>
+  </types>
+  <types xsi:type="thingML:Enumeration" name="DigitalState">
+    <annotations name="c_type" value="uint8_t"/>
+    <annotations name="c_byte_size" value="1"/>
+    <literals name="LOW">
+      <annotations name="enum_val" value="0"/>
+    </literals>
+    <literals name="HIGH">
+      <annotations name="enum_val" value="1"/>
+    </literals>
+  </types>
+  <protocols name="Serial">
+    <annotations name="serializer" value="Binary"/>
+  </protocols>
+  <protocols name="Timer"/>
+  <configs name="ArduinoSensor">
+    <instances name="sensor" type="//@types.0"/>
+    <connectors xsi:type="thingML:ExternalConnector" inst="//@configs.0/@instances.0" port="//@types.0/@ports.1" protocol="//@protocols.1"/>
+    <connectors xsi:type="thingML:ExternalConnector" inst="//@configs.0/@instances.0" port="//@types.0/@ports.0" protocol="//@protocols.0"/>
+  </configs>
+</thingML:ThingMLModel>

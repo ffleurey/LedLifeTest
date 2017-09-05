@@ -1,0 +1,7 @@
+
+
+Carbon configuration in storage-schemas.conf:
+
+[ledtest]
+pattern = ledtest\.
+retentions = 10s:24h,1m:60d,10m:1800d

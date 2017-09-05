@@ -1,0 +1,57 @@
+import "SharedMessages.thingml"
+
+thing ArduinoSensor includes LoggerMsgs, TimerMsgs {
+	
+	
+	
+	provided port gateway {
+		receives requestMeasurement
+		sends observation
+	}
+	
+	required port clock {
+		sends timer_start, timer_cancel
+		receives timer_timeout
+	}
+	
+	property R : Int16[6]
+	function initialize() do
+		// Initialize the 3 pins used for selecting the input on the multiplexers
+		'pinMode(2, OUTPUT);
+  		 pinMode(3, OUTPUT);
+  		 pinMode(4, OUTPUT);'
+  		 R[0] = 270		R[1] = 270		R[2] = 91		R[3] = 91		R[4] = 56		R[5] = 56		
+	end
+	
+	
+	function sampleChannel(id : UInt8) do
+		// Select the right input
+		'digitalWrite(2, ('&id&' & 0x01));
+		 digitalWrite(3, ('&id&' & 0x02));
+		 digitalWrite(4, ('&id&' & 0x04));
+		 delay(2);' // Wait for input to settle
+		 var voltage : Long = 'analogRead(0)'
+		 var light : Int16 = 'analogRead(1)'
+		 voltage = (voltage*5000) / 1024
+		 var current : Long = ((5000-voltage)*10) / R[id]
+		 gateway!observation(id, current, voltage, light)
+	end
+	
+	statechart Main init READY {
+		
+		on entry initialize()
+		
+		state READY {
+			internal event m : gateway?requestMeasurement action sampleChannel(m.id) 
+		}	
+	}
+}
+
+protocol Serial @serializer "Binary";
+
+configuration ArduinoSensor {
+	instance sensor : ArduinoSensor
+	
+	connector sensor.clock over Timer
+	connector sensor.gateway over Serial
+}

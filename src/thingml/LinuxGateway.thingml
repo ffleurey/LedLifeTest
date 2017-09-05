@@ -1,0 +1,137 @@
+
+import "SharedMessages.thingml"
+
+thing StatsdLogger includes LoggerMsgs 
+@c_header "
+#include <stdlib.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#define BUFLEN 512
+#define PORT 8125
+"
+@c_global "
+void diep(char *s) {
+  perror(s);
+  exit(1);
+}"
+{
+	
+	provided port statsd {
+		receives observation
+	}
+
+
+	/**
+	 * This function sends data to a graphite server using statsd UDP packets.
+	 * server has ip 192.168.1.15 and port 8125
+	 * 
+	 * The configuration for the storage in graphite config file storage-schemas.conf
+	 * 
+	 * [ledtest]
+	 * pattern = ledtest\.
+     * retentions = 10s:24h,1m:60d,10m:1800d
+     * 
+	 */
+	function sendData(id : UInt8, current : Int16, voltage : Int16, brightness : Int16) do
+	    'char buf[BUFLEN];
+	
+	    struct sockaddr_in si_other;
+	    int s, i, slen=sizeof(si_other);
+	
+	    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1) diep("socket");
+	    memset((char *) &si_other, 0, sizeof(si_other));
+		si_other.sin_family = AF_INET;
+		si_other.sin_port = htons(PORT);
+	
+	    if (inet_aton("192.168.1.15", &si_other.sin_addr)==0) {
+		  fprintf(stderr, "inet_aton() failed\n");
+		  exit(1);
+		}
+	
+	    sprintf(buf, "ledtest.led%d.voltage:%.2f|g\nledtest.led%d.current:%.1f|g\nledtest.led%d.brightness:%d|g",
+	                 '&id&',        '&voltage&'/1000.0f,   '&id&',        '&current&'/10.0f,     '&id&',           '&brightness&');
+	       
+	    if (sendto(s, buf, strlen(buf), 0, (struct sockaddr *)&si_other, slen)==-1) {
+		    diep("sendto()");
+		}
+	
+	    close(s);
+	
+	    //printf("SENT: \n%s\n\n", buf);'
+	end
+
+	
+	statechart SC init READY {
+		state READY {
+			internal event o:statsd?observation action sendData(o.id, o.current, o.voltage, o.brightness)
+		}
+	}
+} 
+
+thing LinuxGateway includes LoggerMsgs, TimerMsgs 
+@c_header "#include <stdlib.h>"
+{
+	
+	required port sensor {
+		sends requestMeasurement
+		receives observation
+	}
+	
+	required port clock {
+		sends timer_start, timer_cancel
+		receives timer_timeout
+	}
+	
+	statechart Main init RUNNING {
+		
+		on entry print "Gateway has started\n"
+		
+		state RUNNING {
+			
+			property id : Int8 = 0
+			
+			on entry clock!timer_start(0, 2000)
+			
+			transition -> RUNNING event e:clock?timer_timeout guard e.id == 0 action do
+				sensor!requestMeasurement(id)
+				id = id + 1
+				if (id > 5) id = 0 
+			end
+			
+			
+			internal event e:sensor?observation action do
+				//'printf("Received measurement id: %d\tV: %d\tA: %d\tL: %d\n", '&e.id&', '&e.voltage&', '&e.current&', '&e.brightness&');'
+			end
+		}
+	}
+}
+
+protocol Serial @serializer "Binary"
+				@baudrate "115200"
+				@serial_path_to_device "/dev/ttyLedTest";
+				
+/** UDEV Rule to get the arduino to show up as /dev/ttyLedTest
+ * 
+ * Create a new file called "99-usb-serial" in "/etc/udev/rules.d" with content:
+ * 
+ * SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", ATTRS{serial}=="95233353131351110212", SYMLINK+="ttyLedTest"
+ * 
+ * Values need to be adjusted to match the arduino being used. 
+ * Use "lsusb" and "udevadm info -a -n /dev/ttyUSB1 | grep '{serial}'"
+ * 
+ */
+
+configuration LinuxGateway { 
+	instance gw : LinuxGateway
+	instance log: StatsdLogger
+	
+	connector gw.clock over Timer
+	connector gw.sensor over Serial
+	connector log.statsd over Serial
+}

@@ -1,0 +1,8 @@
+import "_Timer.thingml"
+
+thing LoggerMsgs {
+	
+	message requestMeasurement(id : UInt8) @code "10"
+	message observation(id : UInt8, current : Int16, voltage : Int16, brightness : Int16) @code "20"
+	
+}
